@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Office.Interop.Outlook;
 
-namespace OutlookExporter
+namespace Syncer
 {
     public static class OutlookExporter
     {

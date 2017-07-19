@@ -1,8 +1,6 @@
-﻿using System;
-using System.Net;
-using Microsoft.Office.Interop.Outlook;
+﻿using System.Net;
 
-namespace OutlookExporter
+namespace Syncer
 {
     public static class FtpHelper
     {
