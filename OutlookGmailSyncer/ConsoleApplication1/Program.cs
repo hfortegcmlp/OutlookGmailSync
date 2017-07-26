@@ -1,26 +1,35 @@
-﻿using Syncer;
+﻿using System.Collections.Generic;
+using CommandLine;
 
-namespace ConsoleApp2
+namespace Syncer
 {
     class Program
     {
         static void Main(string[] args)
         {
-            RefreshGoogleCalendar();
+            CommandLine.Parser.Default.ParseArguments<FetchAndUploadToFtpOptions, UploadToGoogleOptions>(args)
+                .WithParsed<FetchAndUploadToFtpOptions>(RefreshOutlookData)
+                .WithParsed<UploadToGoogleOptions>(RefreshGoogleCalendar);
+            //    .MapResult(
+            //        (FetchAndUploadToFtpOptions opts) => RefreshGoogleCalendar(opts),
+            //        (CommitOptions opts) => RunCommitAndReturnExitCode(opts),
+            //        (CloneOptions opts) => RunCloneAndReturnExitCode(opts),
+            //        errs => 1);
+
+
+            //RefreshOutlookData();
         }
 
-        private static void RefreshGoogleCalendar()
+        private static void RefreshGoogleCalendar(UploadToGoogleOptions options)
         {
-            GoogleCalendar.DoStuff();
+            //GoogleCalendar.RemoveEventsFromWorkCalendar();
+            GoogleCalendar.AddEventsToWorkCalendar(SettingsHelper.LocalIcalPath);
         }
 
-        static void RefreshOutlookData()
+        static void RefreshOutlookData(FetchAndUploadToFtpOptions options)
         {
-            var localPath = "c:\\ical.ical";
-            var ftpPath = "ical.ical";
-            OutlookExporter.ExportIcal(localPath);
-            FtpHelper.Upload(localPath, ftpPath);
-            //FtpHelper.Download(ftpPath, "c:\\SomeFile.ical");
+            OutlookExporter.ExportIcal(SettingsHelper.LocalIcalPath);
+            FtpHelper.Upload(options);
         }
     }
 }

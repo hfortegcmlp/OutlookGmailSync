@@ -9,7 +9,8 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using iCal.PCL;
+using Ical.Net.Interfaces;
+using Ical.Net.Interfaces.Components;
 
 namespace Syncer
 {
@@ -24,37 +25,10 @@ namespace Syncer
 
         public static void RemoveEventsFromWorkCalendar()
         {
-            UserCredential credential;
+            CalendarService service = GetService();
 
-            using (var stream =
-                new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
-            {
-                string credPath = System.Environment.GetFolderPath(
-                    System.Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".credentials/calendar-dotnet-quickstart.json");
-
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
-                    Scopes,
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore(credPath, true)).Result;
-                Console.WriteLine("Credential file saved to: " + credPath);
-            }
-
-            // Create Google Calendar API service.
-            var service = new CalendarService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = ApplicationName,
-            });
-
-
-            var request = service.CalendarList.List();
-
+            var workCalendar = GetWorkCalendar(service);
             // get work calendar
-            var calendars = request.Execute();
-            var workCalendar = calendars.Items.Single(x => x.Summary == "Work");
 
             // Define parameters of request.
             EventsResource.ListRequest eventRequest = service.Events.List(workCalendar.Id);
@@ -78,71 +52,84 @@ namespace Syncer
             }
 
             Task.WaitAll(tasks.ToArray());
+        }
+
+        private static CalendarListEntry GetWorkCalendar(CalendarService service)
+        {
+            var request = service.CalendarList.List();
+            var calendars = request.Execute();
+            var workCalendar = calendars.Items.Single(x => x.Summary == "Work");
+            return workCalendar;
+
+        }
+
+        private static CalendarService GetService()
+        {
+            UserCredential credential = GetUserCredentials();
+
+            // Create Google Calendar API service.
+            var service = new CalendarService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            return service;
+        }
+
+        private static UserCredential GetUserCredentials()
+        {
+            UserCredential credential = GetUserCredentials();
+
+            using (var stream =
+                new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+            {
+                string credPath = System.Environment.GetFolderPath(
+                    System.Environment.SpecialFolder.Personal);
+                credPath = Path.Combine(credPath, ".credentials/calendar-dotnet-quickstart.json");
+
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    Scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true)).Result;
+                Console.WriteLine("Credential file saved to: " + credPath);
+            }
+
+            return credential;
         }
 
         public static void AddEventsToWorkCalendar(string icalPath)
         {
-            UserCredential credential;
-
-            using (var stream =
-                new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+            IICalendarCollection calendars = Ical.Net.Calendar.LoadFromFile(icalPath);
+            foreach (IEvent eventItem in calendars.First().Events)
             {
-                string credPath = System.Environment.GetFolderPath(
-                    System.Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".credentials/calendar-dotnet-quickstart.json");
-
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
-                    Scopes,
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore(credPath, true)).Result;
-                Console.WriteLine("Credential file saved to: " + credPath);
-            }
-
-            // Create Google Calendar API service.
-            var service = new CalendarService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = ApplicationName,
-            });
-
-            var events = GetIcalEvents(icalPath);
-
-            var request = service.CalendarList.List();
-
-            // get work calendar
-            var calendars = request.Execute();
-            var workCalendar = calendars.Items.Single(x => x.Summary == "Work");
-
-            // Define parameters of request.
-            EventsResource.ListRequest eventRequest = service.Events.List(workCalendar.Id);
-            eventRequest.ShowDeleted = false;
-
-            var events = eventRequest.Execute();
-
-            var tasks = new List<Task>();
-            Console.WriteLine("Upcoming events:");
-            if (events.Items != null && events.Items.Count > 0)
-            {
-                foreach (var eventItem in events.Items)
+                Event googleEvent = new Event();
+                googleEvent.ICalUID = eventItem.Uid;
+                googleEvent.Organizer = new Event.OrganizerData
                 {
-                    service.Events.Import(new Event {}, workCalendar.Id)
-                    tasks.Add(service.Events.Delete(workCalendar.Id, eventItem.Id).ExecuteAsync());
-                    Console.WriteLine("{0}", eventItem.Summary);
+                    DisplayName = eventItem.Organizer.CommonName,
+                };
+                foreach (var attendee in eventItem.Attendees)
+                {
+                    googleEvent.Attendees.Add(new EventAttendee
+                    {
+                        DisplayName = attendee.CommonName
+                    });
                 }
-            }
-            else
-            {
-                Console.WriteLine("No upcoming events found.");
-            }
+                googleEvent.Start = new EventDateTime
+                {
+                    DateTime = eventItem.Start.Date,
+                    TimeZone = eventItem.Start.TimeZoneName
+                };
 
-            Task.WaitAll(tasks.ToArray());
-        }
-
-        private static object GetIcalEvents(string icalPath)
-        {
-            iCal.PCL.Serialization.iCalRawSerializer.Deserialize()
+                googleEvent.End = new EventDateTime
+                {
+                    DateTime = eventItem.End.Date,
+                    TimeZone = eventItem.End.TimeZoneName
+                };
+            }
         }
     }
 }

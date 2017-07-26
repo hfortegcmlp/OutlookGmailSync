@@ -4,26 +4,31 @@ namespace Syncer
 {
     public static class FtpHelper
     {
-        public static string UserName = "hugoforte";
-        public static string PassWord = "ruq0ljxn";
-        public static string FtpSite = "ftp://ftp.axelforte.com/";
-        public static void Upload(string fromPath, string toPath)
+        public static void Upload(FetchAndUploadToFtpOptions options)
         {
-            using (WebClient client = new WebClient())
+            using (WebClient client = GetClient(options))
+            {   
+                client.UploadFile($"{options.FtpAddress}/{SettingsHelper.FtpIcalName}", "STOR", SettingsHelper.LocalIcalPath);
+            }
+        }
+        
+
+        public static void Download(FetchAndUploadToFtpOptions options)
+        {
+            using (WebClient client = GetClient(options))
             {
-                client.Credentials = new NetworkCredential(UserName, PassWord);
-                client.UploadFile($"{FtpSite}/{toPath}", "STOR", fromPath);
+                client.DownloadFile($"{options.FtpAddress}/{SettingsHelper.FtpIcalName}", SettingsHelper.LocalIcalPath);
             }
         }
 
-        public static void Download(string fromPath, string toPath)
+        private static WebClient GetClient(FetchAndUploadToFtpOptions options)
         {
-            using (WebClient client = new WebClient())
-            {
-                client.Credentials = new NetworkCredential(UserName, PassWord);
-                client.DownloadFile($"{FtpSite}/{fromPath}", toPath);
-            }
+            var client = new WebClient();
+            client.Credentials = new NetworkCredential(options.UserName, options.Password);
+            return client;
         }
+
+        
     }
 
 }
