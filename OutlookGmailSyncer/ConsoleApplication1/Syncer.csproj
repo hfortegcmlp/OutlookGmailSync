@@ -88,14 +88,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FetchAndUploadToFtpOptions.cs" />
+    <Compile Include="Options\FetchAndUploadToFtpOptions.cs" />
     <Compile Include="Ftp.cs" />
+    <Compile Include="Options\FtpOptions.cs" />
     <Compile Include="GoogleCalendar.cs" />
     <Compile Include="OutlookExporter.cs" />
     <Compile Include="SettingsHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UploadToGoogleOptions.cs" />
+    <Compile Include="Options\UploadToGoogleOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

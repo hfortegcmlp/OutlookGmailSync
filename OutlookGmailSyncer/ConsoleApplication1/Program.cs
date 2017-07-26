@@ -3,7 +3,7 @@ using CommandLine;
 
 namespace Syncer
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -14,14 +14,19 @@ namespace Syncer
 
         private static void RefreshGoogleCalendar(UploadToGoogleOptions options)
         {
-            GoogleCalendar.RemoveEventsFromWorkCalendar();
-            GoogleCalendar.AddEventsToWorkCalendar(SettingsHelper.LocalIcalPath);
+            var ftpHelper = new FtpHelper(options);
+            var googleCal = new GoogleCalendar(options);
+            ftpHelper.Download();
+            googleCal.RemoveEventsFromWorkCalendar();
+            googleCal.AddEventsToWorkCalendar(SettingsHelper.LocalIcalPath);
         }
 
         static void RefreshOutlookData(FetchAndUploadToFtpOptions options)
         {
+            var ftpHelper = new FtpHelper(options);
             OutlookExporter.ExportIcal(SettingsHelper.LocalIcalPath);
-            FtpHelper.Upload(options);
+            ftpHelper.Upload();
         }
+
     }
 }

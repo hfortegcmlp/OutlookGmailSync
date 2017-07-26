@@ -2,8 +2,7 @@
 
 namespace Syncer
 {
-    [Verb("FetchAndUpload", HelpText = "Fetch from outlook and upload to ftp")]
-    public class FetchAndUploadToFtpOptions
+    public class FtpOptions
     {
         [Option('f', "ftp", Required = true, HelpText = "ftp site")]
         public string FtpAddress { get; set; }
@@ -12,6 +11,6 @@ namespace Syncer
         public string UserName { get; set; }
 
         [Option('p', "ftp password", Required = true, HelpText = "ftp site password")]
-        public string Password{ get; set; }
+        public string Password { get; set; }
     }
 }
