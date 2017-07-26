@@ -10,19 +10,11 @@ namespace Syncer
             CommandLine.Parser.Default.ParseArguments<FetchAndUploadToFtpOptions, UploadToGoogleOptions>(args)
                 .WithParsed<FetchAndUploadToFtpOptions>(RefreshOutlookData)
                 .WithParsed<UploadToGoogleOptions>(RefreshGoogleCalendar);
-            //    .MapResult(
-            //        (FetchAndUploadToFtpOptions opts) => RefreshGoogleCalendar(opts),
-            //        (CommitOptions opts) => RunCommitAndReturnExitCode(opts),
-            //        (CloneOptions opts) => RunCloneAndReturnExitCode(opts),
-            //        errs => 1);
-
-
-            //RefreshOutlookData();
         }
 
         private static void RefreshGoogleCalendar(UploadToGoogleOptions options)
         {
-            //GoogleCalendar.RemoveEventsFromWorkCalendar();
+            GoogleCalendar.RemoveEventsFromWorkCalendar();
             GoogleCalendar.AddEventsToWorkCalendar(SettingsHelper.LocalIcalPath);
         }
 
