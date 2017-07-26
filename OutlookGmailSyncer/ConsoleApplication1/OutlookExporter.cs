@@ -14,8 +14,8 @@ namespace Syncer
 
             CalendarSharing cs = f.GetCalendarExporter();
             cs.CalendarDetail = OlCalendarDetail.olFullDetails;
-            cs.StartDate = DateTime.Now.AddMonths(-1);
-            cs.EndDate = DateTime.Now;
+            cs.StartDate = DateTime.Now.AddDays(-7);
+            cs.EndDate = DateTime.Now.AddMonths(2);
             cs.SaveAsICal(path);
         }
     }
